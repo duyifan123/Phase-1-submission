@@ -12,21 +12,18 @@ end;
 /
 
 
-create or replace trigger ATHLETE_DISMISAL
-after delete
-on PARTICIPANT
+create or replace trigger ATHLETE_DISMISSAL
+before delete
+on USER_ACCOUNT
 for each row
-declare
-    team_num number;
 begin
-    select team_id into team_num from TEAM_MEMBER where participant_id=:old.participant_id;
-    delete  from TEAM where team_id=team_num;
-    delete from TEAM_MEMBER where participant_id=:old.participant_id;
-    delete from SCOREBOARD where participant_id=:old.participant_id;
-    update EVENT_PARTICIPATION set status='n' where team_id=team_num;
+
+    delete from TEAM_MEMBER where participant_id=:old.user_id;
+    update EVENT_PARTICIPATION set status='n' where team_id in (select distinct team_id from team_member where participant_id = :old.user_id);
+    delete from scoreboard where participant_id = :old.user_id;
+    delete from PARTICIPANT where participant_id = :old.user_id;
 end;
 /
-
 
 create or replace trigger ENFORCE_CAPACITY
 before update or insert
